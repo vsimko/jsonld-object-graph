@@ -44,7 +44,12 @@ describe('#jsonld2obj', () => {
     }
 
     const { graph, id2obj } = await jsonld2obj(data, contexts)
+    // console.log(JSON.stringify(data, null, 2))
+    // console.log(graph)
+
     expect(id2obj.Gordon).toEqual(id2obj.Alyx['foaf:knows'])
+    expect(id2obj.Gordon['foaf:knows']['foaf:name']).toEqual('Alyx Vence')
+    expect(id2obj.Gordon['foaf:knows']['foaf:knows']['foaf:name']).toEqual('Gordon Freeman')
     expect(() => JSON.stringify(graph)).toThrow('circular structure')
   })
 })
