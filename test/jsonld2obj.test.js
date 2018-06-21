@@ -1,5 +1,29 @@
 const { jsonld2obj } = require('../src')
 
+const jsonld = require('jsonld')
+
+const CONTEXTS = {
+  'http://test/ctx/person.jsonld': {
+    '@context': {
+      'name': 'http://xmlns.com/foaf/0.1/name',
+      'knows': {
+        '@id': 'http://xmlns.com/foaf/0.1/knows',
+        '@type': '@id'
+      }
+    }
+  }
+}
+
+jsonld.documentLoader = (url, callback) => {
+  if (url in CONTEXTS) {
+    return callback(null, {
+      contextUrl: null, // this is for a context via a link header
+      document: CONTEXTS[url], // this is the actual document that was loaded
+      documentUrl: url // this is the actual context URL after redirects
+    })
+  }
+}
+
 describe('#jsonld2obj', () => {
   it('should work for simple types', async () => {
     const data = { a: 1, b: 2, c: 'hello', d: [{ e: 1, f: [] }] }
@@ -17,8 +41,8 @@ describe('#jsonld2obj', () => {
   })
 
   it('should work with `@context`', async () => {
-    const myInstancesNs = 'http://vcare/person/'
-    const mySchemaUrl = 'https://json-ld.org/contexts/person.jsonld'
+    const myInstancesNs = 'http://test/person/'
+    const mySchemaUrl = 'http://test/ctx/person.jsonld'
 
     const idGordon = myInstancesNs + 'Gordon'
     const idAlyx = myInstancesNs + 'Alyx'
