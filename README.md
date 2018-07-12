@@ -32,7 +32,7 @@ const contexts = {
   'foaf': 'http://xmlns.com/foaf/0.1/'
 }
     
-const {graph, id2obj} = jsonld2obj(data)
+const {graph, id2obj} = await jsonld2obj(data, contexts)
 console.log(graph)
 ```
 
