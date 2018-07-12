@@ -1,7 +1,17 @@
-const { map, identity, prop, uniq, compose, composeP, isEmpty, type } = require('ramda')
 const jsonld = require('jsonld')
+const {
+  map,
+  identity,
+  prop,
+  uniq,
+  compose,
+  composeP,
+  isEmpty,
+  type
+} = require('ramda')
 
-const compactWithContexts = contexts => async json => jsonld.compact(json, contexts)
+const jsonldFlattenWithContexts = contexts => async json =>
+  jsonld.flatten(json, contexts)
 
 /** @pure */
 const conversion = json => {
@@ -21,8 +31,14 @@ const conversion = json => {
     Number: identity,
     Boolean: identity,
     Null: identity,
-    Array: compose(uniq, map(dispatch)),
-    Object: compose(resolveMappedObj, map(dispatch))
+    Array: compose(
+      uniq,
+      map(dispatch)
+    ),
+    Object: compose(
+      resolveMappedObj,
+      map(dispatch)
+    )
   })
   const graph = dispatch(json)
   return { graph, id2obj }
@@ -38,14 +54,18 @@ const conversion = json => {
  * - `id2obj`: mapping `@id->object` in the `graph` for easy access
  * - `contexts`: contexts used for the json-ld transformation
  */
-async function jsonld2obj (json, contexts = {}) {
-  const convertJsonAsync =
-    isEmpty(contexts)
-      ? conversion
-      : composeP(conversion, prop('@graph'), compactWithContexts(contexts))
+const jsonld2obj = async (json, contexts = {}) => {
+  const convertJsonAsync = isEmpty(contexts)
+    ? conversion
+    : composeP(
+        conversion,
+        prop('@graph'),
+        jsonldFlattenWithContexts(contexts)
+      )
 
   /** @type {{graph, id2obj:{[x:string]}}} */
   const result = await convertJsonAsync(json)
   return { ...result, contexts }
 }
+
 module.exports = { jsonld2obj }
