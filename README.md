@@ -64,7 +64,7 @@ Of course, we don't like these huge identifiers in our code.
 To shorten the property names, such as `foaf:knows` to `knows`, we can use the following function:
 ```js
 const replacers = x => x.replace(/^foaf:/, '')
-mutateGraphKeys(replacers)(id2obj)
+mutateGraphKeys(replacers)(id2obj) // mutates the graph in id2obj
 ```
 
 Now it is possible to navigate the graph as follows:
