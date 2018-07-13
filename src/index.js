@@ -15,13 +15,27 @@ const {
 const conversion = json => {
   const id2obj = {} // our mapping for objects with @id
   const type2fn = {} // map of functions handling different types during recursion
-  const dispatch = x => {
-    return type2fn[type(x)](x)
-  }
+  const dispatch = x => type2fn[type(x)](x)
   const resolveMappedObj = mapped => {
     const id = mapped['@id'] // try to resolve objects if @id is present
     if (id) {
       if (!id2obj[id]) id2obj[id] = {} // new object found
+
+      // now is time to resolve the type if defined
+      const typeId = mapped['@type']
+      if (typeId) {
+        // ensure object with id `typeId` exists
+        if (!id2obj[typeId]) {
+          id2obj[typeId] = {}
+        }
+        // ensure property `instances` exists
+        if (typeof id2obj[typeId].instances === 'undefined') {
+          id2obj[typeId].instances = {}
+        }
+        mapped['@type'] = id2obj[typeId] // mapped -> typeObj
+        id2obj[typeId].instances[id] = mapped // typeObj -> mapped
+      }
+
       return Object.assign(id2obj[id], mapped) // update cache
     }
     return mapped

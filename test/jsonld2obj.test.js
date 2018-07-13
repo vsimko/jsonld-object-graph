@@ -59,4 +59,22 @@ describe('#jsonld2obj', () => {
     expect(id2obj.Agent['x:some']).toEqual(0.9)
     expect(id2obj.Agent2['x:some']).toEqual(0.9)
   })
+
+  it('should resolve `@type` and extablish `instances` link', async () => {
+    const { id2obj } = await jsonld2obj([
+      {
+       '@id': 'Agent',
+       '@type': 'http://myschema/Agent',
+       'x:some': 0.9
+     },
+     {
+       '@id': 'Agent2',
+       '@type': 'http://myschema/Agent',
+       'x:some': 0.9
+     }
+    ])
+    expect(id2obj).toHaveProperty('http://myschema/Agent')
+    expect(id2obj['http://myschema/Agent']).toEqual(id2obj.Agent['@type'])
+    expect(id2obj.Agent['@type'].instances.Agent).toEqual(id2obj.Agent)
+  })
 })
