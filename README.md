@@ -57,3 +57,33 @@ Now it is possible to navigate the graph as follows:
 id2obj.Gordon['foaf:knows']['foaf:name'] // -> "Alyx Vence"
 id2obj.Gordon['foaf:knows']['foaf:knows']['foaf:name'] // -> "Gordon Freeman"
 ```
+
+## Shorteninig of property names
+
+Of course, we don't like these huge identifiers in our code.
+To shorten the property names, such as `foaf:knows` to `knows`, we can use the following function:
+```js
+const replacers = x => x.replace(/^foaf:/, '')
+mutateGraphKeys(replacers)(id2obj)
+```
+
+Now it is possible to navigate the graph as follows:
+```js
+id2obj.Gordon.knows.name // -> "Alyx Vence"
+id2obj.Gordon.knows.knows.name // -> "Gordon Freeman"
+```
+
+The function `mutateGraphKeys` is not pure, it mutates the keys in the original graph.
+During this process, an exception is thrown if an ambigous replacement occured.
+
+## Replacements in a functional way
+
+With ramda (or sanctuary) we can compose the replacements in a functional way as follows:
+```js
+const {compose, replace} = require('ramda')
+const replacers = compose(
+  replace(/^foaf:/, ''),
+  replace(/^other:/, ''),
+  /* ... */
+)
+```
