@@ -92,6 +92,4 @@ describe('#jsonld2obj', () => {
     expect(id2obj['http://myschema/Agent']).toBe(id2obj.Agent['@type'])
     expect(id2obj.Agent['@type'].instances.Agent).toBe(id2obj.Agent)
   })
-
-
 })
