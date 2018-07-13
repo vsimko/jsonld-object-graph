@@ -60,18 +60,47 @@ const conversion = json => {
 const jsonld2obj = async (json, contexts) => {
   const convertJsonAsync =
     isNil(contexts) || isEmpty(contexts)
-    ? conversion
-    : composeP(
-        conversion,
+      ? conversion
+      : composeP(
+          conversion,
           compactJsonldWithContexts(contexts)
-      )
+        )
 
   /** @type {{graph, id2obj:{[objUri:string]: {[propUri:string]:object} }}} */
   const result = await convertJsonAsync(json)
   return Object.freeze({ ...result, contexts })
 }
 
-}
+/**
+ * Changes keys within the graph by appluting the keyReplacer.
+ * This function mutates the keys within objMapping and all objects on next level.
+ * @param {(string) => string} keyReplacer
+ */
+const mutateGraphKeys = keyReplacer =>
+  /** @param {{[subjUri:string]: {[predUri:string]: any}}} objMapping */
+  objMapping => {
+    for (const key0 of Object.keys(objMapping)) {
+      const obj = objMapping[key0]
+      for (const key of Object.keys(obj)) {
+        const newKey = keyReplacer(key)
+
+        // we ignore keys that were not replaced
+        if (newKey !== key) {
+          if (newKey in obj) {
+            // TODO: maybe we should ignore the replacement silently if some flag is turned on ?
+            throw new Error(
+              `Trying to replace property ${key} into ${newKey} which already exists in the object.`
+            )
+          }
+          const old = obj[key]
+          delete obj[key]
+          obj[newKey] = old
+        }
+      }
+    }
+    return objMapping
+  }
 
 const base = ns => ({ '@base': ns })
 
+module.exports = { jsonld2obj, mutateGraphKeys, base }
