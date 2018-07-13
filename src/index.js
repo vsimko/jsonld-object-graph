@@ -32,8 +32,8 @@ const conversion = json => {
         if (typeof id2obj[typeId].instances === 'undefined') {
           id2obj[typeId].instances = {}
         }
-        mapped['@type'] = id2obj[typeId] // mapped -> typeObj
-        id2obj[typeId].instances[id] = mapped // typeObj -> mapped
+        mapped['@type'] = id2obj[typeId] // instance -> type
+        id2obj[typeId].instances[id] = id2obj[id] // type -> instance
       }
 
       return Object.assign(id2obj[id], mapped) // update cache
