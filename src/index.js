@@ -73,4 +73,5 @@ const jsonld2obj = async (json, contexts) => {
 
 }
 
-module.exports = { jsonld2obj }
+const base = ns => ({ '@base': ns })
+
