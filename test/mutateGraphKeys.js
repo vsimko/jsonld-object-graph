@@ -2,7 +2,7 @@ const { FOAF_NS, HALFLIFE_JSONLD, HALFLIFE_PERSON_NS } = require('./common')
 const { mutateGraphKeys, jsonld2obj, base } = require('../src')
 const { replace } = require('ramda')
 
-describe('#mapGraphKeys', () => {
+describe('#mutateGraphKeys', () => {
   it('should map properties of objects', async () => {
     const { id2obj } = await jsonld2obj(
       HALFLIFE_JSONLD,
