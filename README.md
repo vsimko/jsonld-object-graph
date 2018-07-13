@@ -87,3 +87,30 @@ const replacers = compose(
   /* ... */
 )
 ```
+
+## Types resolved automagically
+If your JSON-LD data contains the `@type` property, our function automatically resolves it into a javascript object and establishes inverse links through the `instances` property.
+```js
+const { id2obj } = await jsonld2obj([
+  {
+   '@id': 'agent1',
+   '@type': 'Agent',
+   'rdfs:comment': "agent1 is an instance of Agent"
+  },
+  {
+   '@id': 'Agent',
+   'rdfs:comment': "Agent is a type defined in our schema"
+  }
+])
+const replacers = compose(
+  replace(":", '_'), // rdfs:comment -> rdfs_comment
+  replace("@", ""), // @type -> type, @id -> id
+)
+mutateGraphKeys()(id2obj)
+
+id2obj.agent1.rdfs_comment // -> "agent1 is an instance of Agent"
+id2obj.agent1.type.rdfs_comment // -> "Agent is a type defined in our schema"
+id2obj.Agent.instances.agent1.id // -> "agent1"
+```
+
+
