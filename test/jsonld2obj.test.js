@@ -60,7 +60,22 @@ describe('#jsonld2obj', () => {
     expect(id2obj.Agent2['x:some']).toEqual(0.9)
   })
 
-  it('should resolve `@type` and extablish `instances` link', async () => {
+  it('should resolve `@type`', async () => {
+    const { id2obj } = await jsonld2obj([
+      {
+       '@id': 'Agent',
+       '@type': 'AgentType',
+       'x:some': 0.9
+     },
+     {
+       '@id': 'AgentType',
+       'x:label': 'Agent type from our schema'
+     }
+    ])
+    expect(id2obj.AgentType.instances.Agent).toEqual(id2obj.Agent)
+  })
+
+  it('should resolve `@type` from other schema', async () => {
     const { id2obj } = await jsonld2obj([
       {
        '@id': 'Agent',
@@ -77,4 +92,6 @@ describe('#jsonld2obj', () => {
     expect(id2obj['http://myschema/Agent']).toEqual(id2obj.Agent['@type'])
     expect(id2obj.Agent['@type'].instances.Agent).toEqual(id2obj.Agent)
   })
+
+
 })
