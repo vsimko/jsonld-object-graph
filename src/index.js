@@ -7,11 +7,9 @@ const {
   composeP,
   isEmpty,
   isNil,
-  type
+  type,
+  prop
 } = require('ramda')
-
-const compactJsonldWithContexts = contexts => async json =>
-  jsonld.compact(json, contexts)
 
 /** @pure */
 const conversion = json => {
@@ -58,12 +56,14 @@ const conversion = json => {
  * @param {{[x:string]: string}} contexts
  */
 const jsonld2obj = async (json, contexts) => {
+  const flattenUsing = ctx => json => jsonld.flatten(json, ctx)
   const convertJsonAsync =
     isNil(contexts) || isEmpty(contexts)
       ? conversion
       : composeP(
           conversion,
-          compactJsonldWithContexts(contexts)
+          prop('@graph'),
+          flattenUsing(contexts)
         )
 
   /** @type {{graph, id2obj:{[objUri:string]: {[propUri:string]:object} }}} */

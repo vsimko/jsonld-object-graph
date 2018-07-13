@@ -33,4 +33,30 @@ describe('#jsonld2obj', () => {
     )
     expect(() => JSON.stringify(graph)).toThrow('circular structure')
   })
+
+  it('single object should work', async () => {
+    const { id2obj } = await jsonld2obj({
+      '@id': 'Agent',
+      'x:some': 0.9
+    })
+
+    expect(id2obj).not.toBeUndefined()
+    expect(id2obj.Agent['x:some']).toEqual(0.9)
+  })
+
+  it('array should work', async () => {
+    const { id2obj } = await jsonld2obj([
+       {
+        '@id': 'Agent',
+        'x:some': 0.9
+      },
+      {
+        '@id': 'Agent2',
+        'x:some': 0.9
+      }
+     ])
+
+    expect(id2obj.Agent['x:some']).toEqual(0.9)
+    expect(id2obj.Agent2['x:some']).toEqual(0.9)
+  })
 })
