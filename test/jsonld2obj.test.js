@@ -72,7 +72,8 @@ describe('#jsonld2obj', () => {
        'x:label': 'Agent type from our schema'
      }
     ])
-    expect(id2obj.AgentType.instances.Agent).toBe(id2obj.Agent)
+    expect(id2obj.Agent.$type.$$type.Agent).toBe(id2obj.Agent)
+    expect(id2obj.AgentType.$$type.Agent).toBe(id2obj.Agent)
   })
 
   it('should resolve `@type` from other schema', async () => {
@@ -88,8 +89,7 @@ describe('#jsonld2obj', () => {
        'x:some': 0.9
      }
     ])
-    expect(id2obj).toHaveProperty('http://myschema/Agent')
-    expect(id2obj['http://myschema/Agent']).toBe(id2obj.Agent['@type'])
-    expect(id2obj.Agent['@type'].instances.Agent).toBe(id2obj.Agent)
+    expect(id2obj['http://myschema/Agent']).toBe(id2obj.Agent.$type)
+    expect(id2obj.Agent.$type.$$type.Agent).toBe(id2obj.Agent)
   })
 })

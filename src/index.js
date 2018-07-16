@@ -11,6 +11,13 @@ const {
   prop
 } = require('ramda')
 
+const ensureProperty = (obj, pname) => {
+  if (!obj[pname]) {
+    obj[pname] = {}
+  }
+  return obj[pname]
+}
+
 /** @pure */
 const conversion = json => {
   const id2obj = {} // our mapping for objects with @id
@@ -19,24 +26,29 @@ const conversion = json => {
   const resolveMappedObj = mapped => {
     const id = mapped['@id'] // try to resolve objects if @id is present
     if (id) {
-      if (!id2obj[id]) id2obj[id] = {} // new object found
+      delete mapped['@id']
+      mapped.$id = id
+
+      const mappedTargetObj = ensureProperty(id2obj, id)
+      // add inverse properties prefixed with `$$`
+      for (const k of Object.keys(mapped)) {
+        if (!k.startsWith('$')) {
+          mapped[k]['$$' + k] = mappedTargetObj
+        }
+      }
 
       // now is time to resolve the type if defined
       const typeId = mapped['@type']
-      if (typeId) {
-        // ensure object with id `typeId` exists
-        if (!id2obj[typeId]) {
-          id2obj[typeId] = {}
-        }
-        // ensure property `instances` exists
-        if (typeof id2obj[typeId].instances === 'undefined') {
-          id2obj[typeId].instances = {}
-        }
-        mapped['@type'] = id2obj[typeId] // instance -> type
-        id2obj[typeId].instances[id] = id2obj[id] // type -> instance
-      }
+      delete mapped['@type']
 
-      return Object.assign(id2obj[id], mapped) // update cache
+      if (typeId) {
+        const typeObj = ensureProperty(id2obj, typeId)
+        typeObj.$id = typeId
+
+        ensureProperty(typeObj, '$$type')[id] = mappedTargetObj // $$type means "inverse of $type"
+        mapped.$type = typeObj // $type:object replaces @type:string
+      }
+      return Object.assign(mappedTargetObj, mapped) // update cache
     }
     return mapped
   }
@@ -115,6 +127,7 @@ const mutateGraphKeys = keyReplacer =>
     return objMapping
   }
 
+/** @pure */
 const base = ns => ({ '@base': ns })
 
 module.exports = { jsonld2obj, mutateGraphKeys, base }
