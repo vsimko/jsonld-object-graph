@@ -1,21 +1,53 @@
-const jsonld = require('jsonld')
+const jsonld = require("jsonld")
+
 const {
   map,
   identity,
-  uniq,
+  indexBy,
   compose,
   composeP,
-  isEmpty,
-  isNil,
   type,
-  prop
-} = require('ramda')
+  prop,
+  replace,
+  last,
+  split,
+  values
+} = require("ramda")
 
-const ensureProperty = (obj, pname) => {
+const ensureSlot = (obj, pname) => {
   if (!obj[pname]) {
     obj[pname] = {}
   }
   return obj[pname]
+}
+
+const normalizeField = field => x => {
+  const oldKey = "@" + field
+  if (x[oldKey]) {
+    const newKey = "$" + field
+    x[newKey] = x[oldKey]
+    delete x[oldKey]
+  }
+  return x
+}
+
+class MultiVal {
+  static fromObject (x) {
+    return new MultiVal(x)
+  }
+
+  constructor (x) {
+    Object.assign(this, x)
+  }
+
+  toList () {
+    return Object.values(this)
+  }
+
+  first () {
+    const keys = Object.keys(this)
+    return this[keys[0]]
+  }
 }
 
 /** @pure */
@@ -24,50 +56,64 @@ const conversion = json => {
   const type2fn = {} // map of functions handling different types during recursion
   const dispatch = x => type2fn[type(x)](x)
   const resolveMappedObj = mapped => {
-    const id = mapped['@id'] // try to resolve objects if @id is present
-    if (id) {
-      delete mapped['@id']
-      mapped.$id = id
-
-      const mappedTargetObj = ensureProperty(id2obj, id)
-      // add inverse properties prefixed with `$$`
-      for (const k of Object.keys(mapped)) {
-        if (!k.startsWith('$')) {
-          mapped[k]['$$' + k] = mappedTargetObj
-        }
-      }
-
-      // now is time to resolve the type if defined
-      const typeId = mapped['@type']
-      delete mapped['@type']
-
-      if (typeId) {
-        const typeObj = ensureProperty(id2obj, typeId)
-        typeObj.$id = typeId
-
-        ensureProperty(typeObj, '$$type')[id] = mappedTargetObj // $$type means "inverse of $type"
-        mapped.$type = typeObj // $type:object replaces @type:string
-      }
-      return Object.assign(mappedTargetObj, mapped) // update cache
+    if (mapped["@value"]) {
+      return mapped["@value"]
     }
-    return mapped
+    if (!mapped.$id) {
+      return mapped
+    }
+    const mappedSlot = ensureSlot(id2obj, mapped.$id)
+
+    mappedSlot[mapped.$id] = mappedSlot // special link to self for easier graph navigation
+
+    // resolve the type object if defined
+    if (mapped.$type) {
+      let types
+      if (mapped.$type instanceof MultiVal) {
+        types = compose(
+          MultiVal.fromObject,
+          indexBy(prop("$id")),
+          map(typeId => {
+            const typeObj = ensureSlot(id2obj, typeId)
+            typeObj.$id = typeId
+            return typeObj
+          }),
+          values
+        )(mapped.$type)
+      } else {
+        const typeId = mapped.$type
+        const typeObj = ensureSlot(id2obj, typeId)
+        typeObj.$id = typeId
+        types = MultiVal.fromObject({ [typeId]: typeObj })
+      }
+      mapped.$type = types
+    }
+    return Object.assign(mappedSlot, mapped) // update cache
   }
+
+  let localSeq = 0 // local sequence used for generating keys in multi-value properties
   Object.assign(type2fn, {
     String: identity,
     Number: identity,
     Boolean: identity,
     Null: identity,
     Array: compose(
-      uniq,
+      MultiVal.fromObject,
+      indexBy(x => {
+        return x.$id ? x.$id : "_" + localSeq++
+      }),
       map(dispatch)
     ),
     Object: compose(
       resolveMappedObj,
+      normalizeField("id"), // @id -> $id
+      normalizeField("type"), // @type -> $type
       map(dispatch)
     )
   })
-  const graph = dispatch(json)
-  return { graph, id2obj }
+  dispatch(json)
+
+  return id2obj
 }
 
 /**
@@ -75,59 +121,110 @@ const conversion = json => {
  * cyclic object references. This is achieved with the help of `@id` parameter
  * as specified by JSON-LD.
  *
- * Results is an object with the following properties:
- * - `graph`: the object graph (potentialy with cycles)
- * - `id2obj`: mapping `@id->object` in the `graph` for easy access
- * - `contexts`: contexts used for the json-ld transformation
- * @param {{[x:string]: string}} contexts
+ * Results is an graph encoded as follows:
+ * - the graph potentially contains cycles
+ * - the data structure is derived from the flattened JSON-LD
+ * - on first level, there are objects indexed by their `@id`
+ * - `@id` and `@type` are converted to `$id` and `$type` for easier navigation
  */
-const jsonld2obj = async (json, contexts) => {
-  const flattenUsing = ctx => json => jsonld.flatten(json, ctx)
-  const convertJsonAsync =
-    isNil(contexts) || isEmpty(contexts)
-      ? conversion
-      : composeP(
-          conversion,
-          prop('@graph'),
-          flattenUsing(contexts)
-        )
-
-  /** @type {{graph, id2obj:{[objUri:string]: {[propUri:string]:object} }}} */
-  const result = await convertJsonAsync(json)
-  return Object.freeze({ ...result, contexts })
-}
+const jsonld2obj = composeP(
+  conversion,
+  prop("@graph"),
+  json => jsonld.flatten(json, {})
+)
 
 /**
- * Changes keys within the graph by appluting the keyReplacer.
+ * Changes keys within the graph by applying the keyReplacer.
  * This function mutates the keys within objMapping and all objects on next level.
  * @param {(string) => string} keyReplacer
  */
-const mutateGraphKeys = keyReplacer =>
-  /** @param {{[subjUri:string]: {[predUri:string]: any}}} objMapping */
-  objMapping => {
-    for (const key0 of Object.keys(objMapping)) {
-      const obj = objMapping[key0]
-      for (const key of Object.keys(obj)) {
-        const newKey = keyReplacer(key)
+function mutateGraphKeys (keyReplacer) {
+  const mutateKeys = obj => {
+    for (const key of Object.keys(obj)) {
+      const newKey = keyReplacer(key)
 
-        // we ignore keys that were not replaced
-        if (newKey !== key) {
-          if (newKey in obj) {
-            // TODO: maybe we should ignore the replacement silently if some flag is turned on ?
-            throw new Error(
-              `Trying to replace property ${key} into ${newKey} which already exists in the object.`
-            )
-          }
-          const old = obj[key]
-          delete obj[key]
-          obj[newKey] = old
+      // mutate also multival references
+      if (obj[key] instanceof MultiVal) {
+        mutateGraphKeys(keyReplacer)(obj[key])
+      }
+
+      // we ignore keys that were not replaced
+      if (newKey !== key) {
+        if (newKey in obj) {
+          // TODO: maybe we should ignore the replacement silently if some flag is turned on ?
+          throw new Error(
+            `Trying to replace property ${key} into ${newKey} which already exists in the object.`
+          )
         }
+        const old = obj[key]
+        delete obj[key]
+        obj[newKey] = old
       }
     }
-    return objMapping
   }
 
-/** @pure */
-const base = ns => ({ '@base': ns })
+  return graph => {
+    mutateKeys(graph) // mutate the top-level keys
+    values(graph).forEach(mutateKeys) // mutate the properties within each object
+    return graph
+  }
+}
 
-module.exports = { jsonld2obj, mutateGraphKeys, base }
+// /**
+//  * @param {[string]} props
+//  * @example
+//  * mutateAddInverse('memberOf', 'member', id2obj)
+//  * mutateAddInverse('$type', 'instance', id2obj)
+//  */
+// function mutateAddInverse (fromProp, toProp, id2obj) {
+//   Object.values(id2obj).forEach(obj => {
+//     Object.keys(obj).forEach(k => {
+//       const t = type(obj[k])
+//       if (t === 'Object') {
+//         obj[k]['$$' + k][obj.$id] = obj
+//       } else if (t === 'Array') {
+//         obj[k].forEach(x => {
+//           x['$$' + k][obj.$id] = obj
+//         })
+//       }
+//     })
+//   })
+// }
+
+/**
+ * @example
+ * mutateRenameProp('$$contains', 'container')(id2obj)
+ */
+const mutateRenameProp = (from, to) => mutateGraphKeys(replace(from, to))
+
+const dropPrefix = prefix => replace(new RegExp("^" + prefix), "")
+const dropNsPrefix = nsprefix => dropPrefix(nsprefix + ":")
+const toUnderscores = replace(/[:/]/g, "_")
+const afterLastSlash = compose(
+  last,
+  split("/")
+)
+const afterLastHash = compose(
+  last,
+  split("#")
+)
+const autoSimplifier = compose(
+  toUnderscores,
+  afterLastSlash,
+  afterLastHash
+)
+
+const base = ns => ({ "@base": ns })
+
+module.exports = {
+  jsonld2obj,
+  dropPrefix,
+  dropNsPrefix,
+  toUnderscores,
+  afterLastSlash,
+  afterLastHash,
+  autoSimplifier,
+  mutateGraphKeys,
+  mutateRenameProp,
+  base
+}
