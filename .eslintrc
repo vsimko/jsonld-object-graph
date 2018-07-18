@@ -1,11 +1,10 @@
 {
-  "extends": [
-    "standard"
-  ],
+  "extends": ["standard"],
   "env": {
     "jest": true
   },
   "rules": {
-    "indent":"off"
+    "indent": "off",
+    "quotes": ["error", "double"]
   }
 }
