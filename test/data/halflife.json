@@ -1,0 +1,40 @@
+[
+  {
+    "@id": "http://schema.org/Person",
+    "rdfs:label": "Some person in Halflife Game"
+  },
+  {
+    "@context": {
+      "@base": "http://halflife/",
+      "@vocab": "http://schema.org/",
+      "knows": {
+        "@type" :"@id"
+      }
+    },
+    "@id": "Gordon",
+    "@type": "Person",
+    "gender": "male",
+    "name": "Gordon Freeman",
+    "knows": [
+      {
+        "@id": "Alyx",
+        "@type": ["Person", "Hacker"],
+        "gender": "female",
+        "name": "Alyx Vence",
+        "knows": "Gordon",
+        "owns": "Pistol",
+        "parent": [
+          {
+            "@id": "Eli",
+            "name": "Eli Vence",
+            "owns": {
+              "@id": "Dog"
+            }
+          }
+        ]
+      },
+      "Barney"
+    ],
+    "owns": ["Gravity Gun", "Crowbar"]
+  }
+]
