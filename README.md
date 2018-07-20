@@ -5,6 +5,18 @@ Using JSON-LD with (but not limited to) GraphQL.
 The function `jsonld2obj` constructs an object graph in memory by resolving the `@id` properties recursively.
 The graph can contain cycles.
 
+# TL;DR
+```js
+const data = ... get JSON-LD data from somewhere ...
+const {jsonld2obj, autoSimplifier, mutateGraphKeys} = require("graphql-jsonld-utils")
+const graph = await jsonld2obj(data)
+mutateGraphKeys(autoSimplifier)(graph)
+
+graph.Gordon.knows.Alyx.name // -> "Alyx Vence"
+graph.Gordon.knows.Alyx.knows.name // -> "Gordon Freeman"
+```
+
+
 # Add dependency to your project
 ```console
 $ yarn add https://github.com/vsimko/graphql-jsonld-utils.git
@@ -12,7 +24,7 @@ $ yarn add https://github.com/vsimko/graphql-jsonld-utils.git
 
 # Example
 ```js
-const {jsonld2obj} = require('graphql-jsonld-utils')
+const {jsonld2obj} = require("graphql-jsonld-utils")
 const data = [
   {
     "@context": {
@@ -58,14 +70,14 @@ Now it is possible to navigate the graph as follows:
 ```js
 graph
   ["http://halflife/Alyx"]
-  ['http://schema.org/knows']
-  ['http://schema.org/name'] // -> "Gordon Freeman"
+  ["http://schema.org/knows"]
+  ["http://schema.org/name"] // -> "Gordon Freeman"
 
 graph
   ["http://halflife/Alyx"]
-  ['http://schema.org/knows']
+  ["http://schema.org/knows"]
   ["http://halflife/Gordon"]
-  ['http://schema.org/name'] // -> "Gordon Freeman"
+  ["http://schema.org/name"] // -> "Gordon Freeman"
 ```
 
 ## Shorteninig of property names
@@ -73,7 +85,7 @@ graph
 Of course, we don't like these huge identifiers in our code.
 To shorten the property names, such as `http://schema.org/knows` to `knows`, we can use the following function:
 ```js
-const {autoSimplifier, mutateGraphKeys} = require('graphql-jsonld-utils')
+const {autoSimplifier, mutateGraphKeys} = require("graphql-jsonld-utils")
 mutateGraphKeys(autoSimplifier)(graph) // mutates the graph in-place
 ```
 
@@ -99,11 +111,11 @@ During this process, an exception is thrown if an ambigous replacement has occur
 
 With ramda (or sanctuary) we can compose the replacements in a functional way as follows:
 ```js
-const {compose, replace} = require('ramda')
+const {compose, replace} = require("ramda")
 const replacers = compose(
-  dropNsPrefix('foaf'),
-  dropNsPrefix('schema'),
-  replace(/...regex.../, '...'), // custom regex replacement
+  dropNsPrefix("foaf"),
+  dropNsPrefix("schema"),
+  replace(/...regex.../, "..."), // custom regex replacement
   /* ... */
 )
 ```
@@ -116,5 +128,3 @@ If your JSON-LD data contains the `@type` property, our function automatically r
 graph.Gordon.$type // -> Multival(Person)
 graph.Alyx.$type // -> Multival(Person, Hacker)
 ```
-
-
