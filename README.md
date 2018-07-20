@@ -1,4 +1,4 @@
-# graphql-jsonld-utils
+![](img/logo.svg)
 
 Using JSON-LD with (but not limited to) GraphQL.
 
