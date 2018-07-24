@@ -3,6 +3,11 @@ node_js:
   - "8"
   - "node"
 
+os:
+  - linux
+  - osx
+  - windows
+
 sudo: false
 
 cache:
