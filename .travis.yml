@@ -1,10 +1,19 @@
 language: node_js
-cache: yarn
 node_js:
   - "8"
+
+cache:
+  - apt
+  - packages
+  - yarn
+
+# related to https://github.com/nodejs/node-gyp/issues/1211
 env:
   - CXX=g++-4.8
+
 addons:
-    apt:
-        packages:
-        - node-gyp
+  apt:    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - node-gyp
+      - g++-4.8
