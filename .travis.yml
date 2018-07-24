@@ -1,4 +1,21 @@
 language: node_js
-cache: yarn
 node_js:
   - "8"
+  - "node"
+
+sudo: false
+
+cache:
+  - apt
+  - packages
+  - yarn
+
+env:
+  - CXX=g++-4.9
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-4.9
