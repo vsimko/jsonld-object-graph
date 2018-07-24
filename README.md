@@ -4,7 +4,7 @@ Using JSON-LD with (but not limited to) GraphQL.
 
 [![Build Status](https://travis-ci.org/vsimko/graphql-jsonld-utils.svg?branch=master)](https://travis-ci.org/vsimko/graphql-jsonld-utils)
 [![Known Vulnerabilities](https://snyk.io/test/github/vsimko/graphql-jsonld-utils/badge.svg?targetFile=package.json)](https://snyk.io/test/github/vsimko/graphql-jsonld-utils?targetFile=package.json)
-[![Dependency Status](https://dependencyci.com/github/vsimko/graphql-jsonld-utils/badge)](https://dependencyci.com/github/vsimko/graphql-jsonld-utils)
+[![Dependency Status](https://tidelift.com/badges/github/vsimko/graphql-jsonld-utils)](https://tidelift.com/subscriber/github/vsimko/repositories/graphql-jsonld-utils)
 
 The function `jsonld2obj` constructs an object graph in memory by resolving the `@id` properties recursively.
 The graph can contain cycles.
