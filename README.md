@@ -25,6 +25,7 @@ graph.Gordon.knows.Alyx.knows.name // -> "Gordon Freeman"
 ```console
 $ yarn add https://github.com/vsimko/graphql-jsonld-utils.git
 ```
+**Note:** This library uses `jsonld` package as a dependency, which at some point depends on some native C code which needs to be compiled through `gyp`. Make sure you can compile native code on your platform. We build our package on Travis-CI, so you can take a look, how the build environment is configured (see `.travis.yml` file).
 
 # Example
 ```js
