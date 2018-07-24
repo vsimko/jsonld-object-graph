@@ -2,18 +2,19 @@ language: node_js
 node_js:
   - "8"
 
+sudo: false
+
 cache:
   - apt
   - packages
   - yarn
 
-# related to https://github.com/nodejs/node-gyp/issues/1211
-env:
-  - CXX=g++-4.8
-
 addons:
-  apt:    sources:
+  apt:
+    sources:
       - ubuntu-toolchain-r-test
     packages:
-      - node-gyp
-      - g++-4.8
+      - g++-4.9
+env:
+  - CC=gcc-4.9
+  - CXX=g++-4.9
