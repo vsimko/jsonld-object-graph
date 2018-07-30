@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.6.0"></a>
+# [0.6.0](https://github.com/vsimko/graphql-jsonld-utils/compare/v0.5.0...v0.6.0) (2018-07-30)
+
+
+### Features
+
+* add function mutateAddInverse ([a44b1f9](https://github.com/vsimko/graphql-jsonld-utils/commit/a44b1f9))
+
+
+
 <a name="0.5.0"></a>
 # [0.5.0](https://github.com/vsimko/graphql-jsonld-utils/compare/v0.4.0...v0.5.0) (2018-07-18)
 
