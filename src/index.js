@@ -129,7 +129,7 @@ const conversion = json => {
  */
 const jsonld2obj = composeP(
   conversion,
-  prop("@graph"),
+  prop("@graph"), // Note: ["@graph"] is always there after jsonld.flatten
   json => jsonld.flatten(json, {})
 )
 
@@ -170,26 +170,22 @@ function mutateGraphKeys (keyReplacer) {
   }
 }
 
-// /**
-//  * @param {[string]} props
-//  * @example
-//  * mutateAddInverse('memberOf', 'member', id2obj)
-//  * mutateAddInverse('$type', 'instance', id2obj)
-//  */
-// function mutateAddInverse (fromProp, toProp, id2obj) {
-//   Object.values(id2obj).forEach(obj => {
-//     Object.keys(obj).forEach(k => {
-//       const t = type(obj[k])
-//       if (t === 'Object') {
-//         obj[k]['$$' + k][obj.$id] = obj
-//       } else if (t === 'Array') {
-//         obj[k].forEach(x => {
-//           x['$$' + k][obj.$id] = obj
-//         })
-//       }
-//     })
-//   })
-// }
+/**
+ * @param {string} prop
+ * @example
+ * mutateAddInverse('memberOf')(graph)
+ * mutateAddInverse('$type')(graph)
+ */
+const mutateAddInverse = prop => graph => {
+  Object.entries(graph).forEach(([k, obj]) => {
+    if (obj[prop]) {
+      values(obj[prop]).forEach(tobj => {
+        const inverseProperty = ensureSlot(tobj, "$" + prop)
+        inverseProperty[k] = obj
+      })
+    }
+  })
+}
 
 /**
  * @example
@@ -225,6 +221,7 @@ module.exports = {
   afterLastHash,
   autoSimplifier,
   mutateGraphKeys,
+  mutateAddInverse,
   mutateRenameProp,
   base
 }
