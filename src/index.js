@@ -21,14 +21,18 @@ const ensureSlot = (obj, pname) => {
   return obj[pname]
 }
 
-const normalizeField = field => x => {
-  const oldKey = "@" + field
-  if (x[oldKey]) {
-    const newKey = "$" + field
-    x[newKey] = x[oldKey]
-    delete x[oldKey]
+/**
+ * Renames a key in an object.
+ * The rename takes place only if the key existed in the object.
+ * The original object is modified, therefore this function NOT PURE.
+ * We us this for mapping `@id` an `@type`.
+ */
+const impureRenameKey = (oldKey, newKey) => object => {
+  if (object[oldKey] !== undefined) {
+    object[newKey] = object[oldKey]
+    delete object[oldKey]
   }
-  return x
+  return object
 }
 
 /**
