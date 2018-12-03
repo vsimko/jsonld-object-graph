@@ -1,6 +1,6 @@
 {
   "name": "jsonld-object-graph",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Working with json-ld as in memory object-graph",
   "main": "src/index.js",
   "repository": "https://github.com/vsimko/jsonld-object-graph.git",
