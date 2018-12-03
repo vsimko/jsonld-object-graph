@@ -18,12 +18,10 @@ describe("#jsonld2obj", () => {
   })
 
   it("single object should work", async () => {
-    const graph = await jsonld2obj(
-      {
-        "@id": "x:Agent",
-        "x:some": 0.9
-      }
-    )
+    const graph = await jsonld2obj({
+      "@id": "x:Agent",
+      "x:some": 0.9
+    })
 
     expect(graph).not.toBeUndefined()
     expect(graph["x:Agent"]["x:some"]).toBe(0.9)
@@ -46,22 +44,22 @@ describe("#jsonld2obj", () => {
     ])
 
     expect(graph["http:/a/AgentType"].$id).toEqual("http:/a/AgentType")
-    expect(graph["http:/a/Agent"].$type.first()).toBe(graph["http:/a/AgentType"])
+    expect(graph["http:/a/Agent"].$type.values()).toEqual([graph["http:/a/AgentType"]])
   })
 
-    it("should resolve `@type` from other schema", async () => {
-      const graph = await jsonld2obj([
-        {
-         "@id": "http://my/Agent",
-         "@type": "http://other/AgentType",
-         "x:some": 0.9
-       },
-       {
-         "@id": "http://my/Agent2",
-         "@type": "http://other/AgentType",
-         "x:some": 0.9
-       }
-      ])
-      expect(graph["http://my/Agent"].$type.first()).toBe(graph["http://other/AgentType"])
-    })
+  it("should resolve `@type` from other schema", async () => {
+    const graph = await jsonld2obj([
+      {
+        "@id": "http://my/Agent",
+        "@type": "http://other/AgentType",
+        "x:some": 0.9
+      },
+      {
+        "@id": "http://my/Agent2",
+        "@type": "http://other/AgentType",
+        "x:some": 0.9
+      }
+    ])
+    expect(graph["http://my/Agent"].$type.values()).toEqual([graph["http://other/AgentType"]])
+  })
 })
