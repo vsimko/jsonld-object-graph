@@ -31,7 +31,12 @@ const normalizeField = field => x => {
   return x
 }
 
+/**
+ * We use this class for representing multiple values in a property.
+ * TODO: why do we use a class instead of just an array ?
+ */
 class MultiVal {
+  /** Preferred factory method */
   static fromObject (x) {
     return new MultiVal(x)
   }
@@ -40,13 +45,12 @@ class MultiVal {
     Object.assign(this, x)
   }
 
-  toList () {
+  values () {
     return Object.values(this)
   }
 
-  first () {
-    const keys = Object.keys(this)
-    return this[keys[0]]
+  keys () {
+    return Object.keys(this)
   }
 }
 
