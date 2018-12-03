@@ -14,6 +14,14 @@ const {
   values
 } = require("ramda")
 
+const defaultConfig = {
+  addSelfRef: true,
+  addTypeRef: true,
+  shouldResolveTypeObjects: true,
+  idFieldName: "$id",
+  typeFieldName: "$type"
+}
+
 const ensureSlot = (obj, pname) => {
   if (!obj[pname]) {
     obj[pname] = {}
@@ -58,43 +66,50 @@ class MultiVal {
   }
 }
 
-/** @pure */
-const conversion = json => {
+/**
+ * This function is pure.
+ */
+const conversion = (config = defaultConfig) => json => {
   const id2obj = {} // our mapping for objects with @id
-  const type2fn = {} // map of functions handling different types during recursion
+  const type2fn = {} // a map of functions handling different datatypes during recursion
   const dispatch = x => type2fn[type(x)](x)
   const resolveMappedObj = mapped => {
     if (mapped["@value"]) {
       return mapped["@value"]
     }
-    if (!mapped.$id) {
+    if (!mapped[config.idFieldName]) {
       return mapped
     }
-    const mappedSlot = ensureSlot(id2obj, mapped.$id)
+    const mappedSlot = ensureSlot(id2obj, mapped[config.idFieldName])
 
-    mappedSlot[mapped.$id] = mappedSlot // special link to self for easier graph navigation
+    // special reference to self for easier graph navigation
+    if (config.addSelfRef) {
+      mappedSlot[mapped[config.idFieldName]] = mappedSlot
+    }
 
-    // resolve the type object if defined
-    if (mapped.$type) {
+    // resolve the type object if defined and allowed in the config
+    const typeObjOrTypeId = mapped[config.typeFieldName]
+    if (config.shouldResolveTypeObjects && typeObjOrTypeId) {
+      const typeObj = typeObjOrTypeId
       let types
-      if (mapped.$type instanceof MultiVal) {
+      if (typeObj instanceof MultiVal) {
         types = compose(
           MultiVal.fromObject,
-          indexBy(prop("$id")),
+          indexBy(prop(config.idFieldName)),
           map(typeId => {
             const typeObj = ensureSlot(id2obj, typeId)
-            typeObj.$id = typeId
+            typeObj[config.idFieldName] = typeId
             return typeObj
           }),
           values
-        )(mapped.$type)
+        )(typeObj)
       } else {
-        const typeId = mapped.$type
+        const typeId = typeObjOrTypeId
         const typeObj = ensureSlot(id2obj, typeId)
-        typeObj.$id = typeId
+        typeObj[config.idFieldName] = typeId
         types = MultiVal.fromObject({ [typeId]: typeObj })
       }
-      mapped.$type = types
+      mapped[config.typeFieldName] = types
     }
     return Object.assign(mappedSlot, mapped) // update cache
   }
@@ -108,19 +123,18 @@ const conversion = json => {
     Array: compose(
       MultiVal.fromObject,
       indexBy(x => {
-        return x.$id ? x.$id : "_" + localSeq++
+        return x[config.idFieldName] ? x[config.idFieldName] : "_" + localSeq++
       }),
       map(dispatch)
     ),
     Object: compose(
       resolveMappedObj,
-      normalizeField("id"), // @id -> $id
-      normalizeField("type"), // @type -> $type
+      impureRenameKey("@type", config.typeFieldName),
+      impureRenameKey("@id", config.idFieldName),
       map(dispatch)
     )
   })
   dispatch(json)
-
   return id2obj
 }
 
@@ -134,9 +148,11 @@ const conversion = json => {
  * - the data structure is derived from the flattened JSON-LD
  * - on first level, there are objects indexed by their `@id`
  * - `@id` and `@type` are converted to `$id` and `$type` for easier navigation
+ *   (this can be changed in `config.idFieldName` and `config.typeFieldName`)
  */
-const jsonld2obj = composeP(
-  conversion,
+const jsonld2objWithConfig = (config = defaultConfig) =>
+  composeP(
+    conversion(config),
   prop("@graph"), // Note: ["@graph"] is always there after jsonld.flatten
   json => jsonld.flatten(json, {})
 )
@@ -221,7 +237,8 @@ const autoSimplifier = compose(
 const base = ns => ({ "@base": ns })
 
 module.exports = {
-  jsonld2obj,
+  jsonld2objWithConfig,
+  jsonld2obj: jsonld2objWithConfig(defaultConfig),
   dropPrefix,
   dropNsPrefix,
   toUnderscores,
