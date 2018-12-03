@@ -22,6 +22,14 @@ const defaultConfig = {
   typeFieldName: "$type"
 }
 
+/**
+ * Create an empty object `{}` as a property `pname`.
+ * Otherwise keep the property intact.
+ * This function is NOT PURE (and shouln't be)
+ * @param {object} obj
+ * @param {string} pname
+ * @returns The existing or newly created value in property `pname`
+ */
 const ensureSlot = (obj, pname) => {
   if (!obj[pname]) {
     obj[pname] = {}
@@ -153,9 +161,9 @@ const conversion = (config = defaultConfig) => json => {
 const jsonld2objWithConfig = (config = defaultConfig) =>
   composeP(
     conversion(config),
-  prop("@graph"), // Note: ["@graph"] is always there after jsonld.flatten
-  json => jsonld.flatten(json, {})
-)
+    prop("@graph"), // Note: ["@graph"] is always there after jsonld.flatten
+    json => jsonld.flatten(json, {})
+  )
 
 /**
  * Changes keys within the graph by applying the keyReplacer.
@@ -180,6 +188,7 @@ function mutateGraphKeys (keyReplacer) {
             `Trying to replace property ${key} into ${newKey} which already exists in the object.`
           )
         }
+        // TODO: we could use `renameKey(key, newKey)(obj)` here
         const old = obj[key]
         delete obj[key]
         obj[newKey] = old
