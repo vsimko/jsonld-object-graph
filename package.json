@@ -1,6 +1,6 @@
 {
   "name": "graphql-jsonld-utils",
-  "version": "0.7.0",
+  "version": "1.0.0",
   "description": "Using JSON-LD with GraphQL",
   "main": "src/index.js",
   "repository": "https://github.com/vsimko/graphql-jsonld-utils.git",
