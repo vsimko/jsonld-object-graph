@@ -1,18 +1,26 @@
 ![](img/logo.svg)
 
-Using JSON-LD with (but not limited to) GraphQL.
-
-[![Build Status](https://travis-ci.org/vsimko/graphql-jsonld-utils.svg?branch=master)](https://travis-ci.org/vsimko/graphql-jsonld-utils)
-[![Known Vulnerabilities](https://snyk.io/test/github/vsimko/graphql-jsonld-utils/badge.svg?targetFile=package.json)](https://snyk.io/test/github/vsimko/graphql-jsonld-utils?targetFile=package.json)
-[![Dependency Status](https://tidelift.com/badges/github/vsimko/graphql-jsonld-utils)](https://tidelift.com/subscriber/github/vsimko/repositories/graphql-jsonld-utils)
+[![Build Status](https://travis-ci.org/vsimko/jsonld-object-graph.svg?branch=master)](https://travis-ci.org/vsimko/jsonld-object-graph)
+[![Known Vulnerabilities](https://snyk.io/test/github/vsimko/jsonld-object-graph/badge.svg?targetFile=package.json)](https://snyk.io/test/github/vsimko/jsonld-object-graph?targetFile=package.json)
+[![Dependency Status](https://tidelift.com/badges/github/vsimko/jsonld-object-graph)](https://tidelift.com/subscriber/github/vsimko/repositories/jsonld-object-graph)
 
 The function `jsonld2obj` constructs an object graph in memory by resolving the `@id` properties recursively.
-The graph can contain cycles.
+The graph can contain cycles. This is handy if you want to navigate graphs represented in RDF (as json-ld) from javascript code.
+
+# Installation
+```sh
+# for yarn users
+yarn add jsonld-object-graph
+
+# for npm users
+npm install jsonld-object-graph
+```
+**Note:** This library uses `jsonld` package as a dependency, which at some point depends on some native C code which needs to be compiled through `gyp`. Make sure you can compile native code on your platform. We build our package on Travis-CI, so you can take a look, how the build environment is configured (see [.travis.yml](.travis.yml) file).
 
 # TL;DR
 ```js
 const data = ... get JSON-LD data from somewhere ...
-const {jsonld2obj, autoSimplifier, mutateGraphKeys} = require("graphql-jsonld-utils")
+const {jsonld2obj, autoSimplifier, mutateGraphKeys} = require("jsonld-object-graph")
 const graph = await jsonld2obj(data)
 mutateGraphKeys(autoSimplifier)(graph)
 
@@ -20,16 +28,9 @@ graph.Gordon.knows.Alyx.name // -> "Alyx Vence"
 graph.Gordon.knows.Alyx.knows.name // -> "Gordon Freeman"
 ```
 
-
-# Add dependency to your project
-```console
-$ yarn add https://github.com/vsimko/graphql-jsonld-utils.git
-```
-**Note:** This library uses `jsonld` package as a dependency, which at some point depends on some native C code which needs to be compiled through `gyp`. Make sure you can compile native code on your platform. We build our package on Travis-CI, so you can take a look, how the build environment is configured (see `.travis.yml` file).
-
 # Example
 ```js
-const {jsonld2obj} = require("graphql-jsonld-utils")
+const {jsonld2obj} = require("jsonld-object-graph")
 const data = [
   {
     "@context": {
@@ -90,7 +91,7 @@ graph
 Of course, we don't like these huge identifiers in our code.
 To shorten the property names, such as `http://schema.org/knows` to `knows`, we can use the following function:
 ```js
-const {autoSimplifier, mutateGraphKeys} = require("graphql-jsonld-utils")
+const {autoSimplifier, mutateGraphKeys} = require("jsonld-object-graph")
 mutateGraphKeys(autoSimplifier)(graph) // mutates the graph in-place
 ```
 
@@ -133,3 +134,20 @@ If your JSON-LD data contains the `@type` property, our function automatically r
 graph.Gordon.$type // -> Multival(Person)
 graph.Alyx.$type // -> Multival(Person, Hacker)
 ```
+
+## Configuration
+
+Since v1.0.0, there is `defaultConfig` with sensible configuration parameters that can be customized as follows:
+```js
+const { jsonld2objWithConfig, defaultConfig } = require("jsonld-object-graph")
+const myConfig = { ...defaultConfig, addSelfRef:false }
+const jsonld2obj = jsonld2objWithConfig(myConfig)
+```
+
+The following param can be configured:
+- **addSelfRef** (default `true`) whether to add self-reference e.g. `graph.Alyx.Alyx == graph.Alyx`
+- **addTypeRef** (default `true`) whether to add the resolved type object as an reference to its instance 
+- **shouldResolveTypeObjects** (default `true`) whether to resolve the "@type" as an object
+- **idFieldName** (default `"$id"`) how the "@id" field should be renamed
+- **typeFieldName** (default `"$type"`) how the "@type" field should be renamed
+
