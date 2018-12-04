@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="1.0.3"></a>
+## [1.0.3](https://github.com/vsimko/jsonld-object-graph/compare/v1.0.2...v1.0.3) (2018-12-04)
+
+
+### Bug Fixes
+
+* vulnerability in os-locale detected by tidelift ([d4bd1f2](https://github.com/vsimko/jsonld-object-graph/commit/d4bd1f2))
+
+
+
 <a name="1.0.2"></a>
 ## [1.0.2](https://github.com/vsimko/jsonld-object-graph/compare/v1.0.0...v1.0.2) (2018-12-03)
 
