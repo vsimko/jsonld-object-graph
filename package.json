@@ -1,6 +1,6 @@
 {
   "name": "jsonld-object-graph",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Working with json-ld as in memory object-graph",
   "main": "src/index.js",
   "repository": "https://github.com/vsimko/jsonld-object-graph.git",
@@ -21,9 +21,9 @@
   },
   "resolutions": {
     "os-locale": "^3.1.0",
-    "lodash":"^4.17.15",
+    "lodash": "^4.17.15",
     "lodash.template": "^4.5.0",
-    "set-value":"^2.0.1"
+    "set-value": "^2.0.1"
   },
   "scripts": {
     "git-cred": "git config credential.helper store",
