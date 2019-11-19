@@ -1,10 +1,29 @@
 {
-  "extends": ["standard"],
+  "extends": [
+    "eslint:recommended"
+  ],
   "env": {
-    "jest": true
+    "jest": true,
+    "browser": true,
+    "es6": true,
+    "node": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 2018,
+    "sourceType": "module"
   },
   "rules": {
-    "indent": "off",
-    "quotes": ["error", "double"]
+    "indent": [
+      "error",
+      2
+    ],
+    "linebreak-style": [
+      "error",
+      "unix"
+    ],
+    "quotes": [
+      "error",
+      "double"
+    ]
   }
 }
