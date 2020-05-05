@@ -2,7 +2,6 @@
 
 [![Build Status](https://travis-ci.org/vsimko/jsonld-object-graph.svg?branch=master)](https://travis-ci.org/vsimko/jsonld-object-graph)
 [![Known Vulnerabilities](https://snyk.io/test/github/vsimko/jsonld-object-graph/badge.svg?targetFile=package.json)](https://snyk.io/test/github/vsimko/jsonld-object-graph?targetFile=package.json)
-[![Dependency Status](https://tidelift.com/badges/github/vsimko/jsonld-object-graph)](https://tidelift.com/subscriber/github/vsimko/repositories/jsonld-object-graph)
 
 The function `jsonld2obj` constructs an object graph in memory by resolving the `@id` properties recursively.
 The graph can contain cycles. This is handy if you want to navigate graphs represented in RDF (as json-ld) from javascript code.
