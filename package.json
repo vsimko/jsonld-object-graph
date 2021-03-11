@@ -7,7 +7,7 @@
   "author": "Viliam Simko <viliam.simko@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "jsonld": "^2.0.2",
+    "jsonld": "^4.0.0",
     "ramda": "^0.27.0"
   },
   "engines": {
