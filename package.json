@@ -1,27 +1,22 @@
 {
   "name": "jsonld-object-graph",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Working with json-ld as in memory object-graph",
   "main": "src/index.js",
   "repository": "https://github.com/vsimko/jsonld-object-graph.git",
   "author": "Viliam Simko <viliam.simko@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "jsonld": "^2.0.2",
-    "ramda": "^0.27.0"
+    "jsonld": "5.2.0",
+    "ramda": "0.27.2"
   },
   "engines": {
     "node": ">=8.0.0"
   },
   "devDependencies": {
     "eslint": "^6.8.0",
-    "jest": "^26.0.0",
-    "jest-cli": "^26.0.0",
-    "standard-version": "^7.1.0"
-  },
-  "resolutions": {
-    "minimist": "1.2.3",
-    "kind-of": "6.0.3"
+    "jest": "^27.4.7",
+    "standard-version": "^9.3.2"
   },
   "scripts": {
     "git-cred": "git config credential.helper store",

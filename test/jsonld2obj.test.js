@@ -13,7 +13,7 @@ describe("#jsonld2obj", () => {
       { "@id": "B", "schema:knows": { "@id": "A" } }
     ]
     const graph = await jsonld2obj(data)
-    expect(graph["/A"]).toBe(graph["/B"]["schema:knows"])
+    expect(graph.A).toBe(graph.B["schema:knows"])
     expect(() => JSON.stringify(graph)).toThrow("circular structure")
   })
 
